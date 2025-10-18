@@ -1,0 +1,287 @@
+{
+  "name": "6 - Goods Delivery status / Email send to vendor",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1008,
+        16
+      ],
+      "id": "eb1dfa9a-c27b-4949-9979-0e0a9788ebf4",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1mIzj9XRAb7ai8euNzQniN_J9IhdnslQvF3usAiF922o",
+          "mode": "list",
+          "cachedResultName": "order Deleviry status  ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mIzj9XRAb7ai8euNzQniN_J9IhdnslQvF3usAiF922o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mIzj9XRAb7ai8euNzQniN_J9IhdnslQvF3usAiF922o/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -784,
+        16
+      ],
+      "id": "8f67328e-1892-42db-bea3-ef26a39a9894",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "AemTKxmw9HtnpyEP",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f2609448-0016-494f-87b8-76abcb049943",
+              "leftValue": "={{ $json['Delivery status'] }}",
+              "rightValue": "Recevied",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -560,
+        16
+      ],
+      "id": "4fd75731-7b20-4ffb-b0df-da4a7485c3ee",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['Delivery status'] }}",
+                    "rightValue": "late",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "857de16d-4318-4a5c-8a18-3283bbf22385"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "801f7b03-9f4e-4f93-922b-aec2bc661caa",
+                    "leftValue": "={{ $json['Delivery status'] }}",
+                    "rightValue": "pending",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -336,
+        -16
+      ],
+      "id": "957bc59f-6894-4cf6-bd30-4c80af0efd78",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Vendor Email'] }}",
+        "subject": "delivery is late ",
+        "message": "=Dear  {{ $json['Vendor name'] }} ,\n{{ $json['Purchase order Number'] }} , \n{{ $json['Product name'] }}\n{{ $json['Product Quanity'] }}\n{{ $json['Purchase order date'] }}\n{{ $json['Delivery date'] }}\nWe noticed that the delivery scheduled for [mention date or order number] has not yet arrived. Please update us on the current status and the expected delivery time.\n\nTimely delivery is critical for our operations, so we request your prompt attention to this matter.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        -192
+      ],
+      "id": "89536a28-06b2-42ce-a052-67687d1a6dcf",
+      "name": "Send a message",
+      "webhookId": "53039f18-12d2-4726-91b8-cd5c07706526",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "s98sGCXfBAX4Z5QR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Vendor Email'] }}",
+        "subject": "your delivery is pending ",
+        "message": "=Dear  {{ $json['Vendor name'] }}\n{{ $json['Purchase order Number'] }} , \n{{ $json['Product name'] }} ,\n{{ $json['Product Quanity'] }} ,\n{{ $json['Purchase order date'] }}  ,\n{{ $json['Delivery date'] }} ,\n{{ $json['Delivery status'] }} , \nYour delivery for [order number or item name] is still pending. Please share the current status and expected delivery date urgently.\n\nBest regards,",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        16
+      ],
+      "id": "2fbe7ba5-8272-4b5e-abf0-59efc7753b2c",
+      "name": "Send a message1",
+      "webhookId": "f31036c6-e0b0-4773-bce1-563c6e2fb741",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "s98sGCXfBAX4Z5QR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "aisajjad253@gmail.com",
+        "subject": "Check the delivery status ",
+        "message": "=Dear Kamal Team ,   {{ $json['Vendor ID'] }}\n{{ $json['Purchase order Number'] }} \n{{ $json['Product name'] }}\n{{ $json['Purchase order date'] }}{{ $json['Product Quanity'] }}\ncheck this what is the problem with this and feedback me to next follow up.\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        208
+      ],
+      "id": "3c6c5d82-a369-4e5e-b51d-65671a14239d",
+      "name": "Send a message2",
+      "webhookId": "8863c396-ad82-4312-a598-5fcb1ad00e76",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "s98sGCXfBAX4Z5QR",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d1840303-7b73-4eb8-992d-2b5e67738cb3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7e77f4497353d59c6fea5f7925bb8c62749f518d6f14410447c66a354df3a33b"
+  },
+  "id": "kFx2jv1Zosq3Gex1",
+  "tags": []
+}
